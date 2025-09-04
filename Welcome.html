@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Welcome</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      background: #ADD8E6; /* Baby blue */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      overflow: hidden;
+      font-family: "Playfair Display", serif;
+      color: white;
+      position: relative;
+    }
+
+    /* Floating hearts */
+    .heart {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background: white;
+      clip-path: polygon(50% 0%, 61% 19%, 82% 19%, 
+                        94% 35%, 94% 56%, 75% 78%, 
+                        50% 100%, 25% 78%, 6% 56%, 
+                        6% 35%, 18% 19%, 39% 19%);
+      opacity: 0.8;
+      animation: float 6s linear infinite;
+    }
+
+    @keyframes float {
+      0% {
+        transform: translateY(100vh) scale(0.8);
+        opacity: 0;
+      }
+      50% {
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(-10vh) scale(1.2);
+        opacity: 0;
+      }
+    }
+
+    .text1, .text2 {
+      position: relative;
+      opacity: 0;
+      text-align: center;
+    }
+
+    .text1 {
+      font-size: 1.8rem; /* Medium */
+      animation: fadeIn 2s forwards;
+    }
+
+    .text2 {
+      font-size: 1.2rem; /* Smaller */
+      animation: fadeIn 2s forwards;
+      animation-delay: 2.5s;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .button {
+      margin-top: 40px;
+      padding: 12px 28px;
+      background: #003366; /* Dark blue */
+      color: white;
+      font-size: 1rem;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+      opacity: 0;
+      animation: fadeIn 2s forwards;
+      animation-delay: 5s;
+      transition: all 0.3s ease-in-out;
+      box-shadow: 0 0 10px rgba(0, 0, 80, 0.6);
+    }
+
+    .button:hover {
+      background: #001F4D; /* Slightly darker blue */
+      box-shadow: 0 0 20px rgba(0, 0, 150, 0.8);
+    }
+  </style>
+</head>
+<body>
+  <div class="text1">Welcome to a little world of magic</div>
+  <div class="text2">Created just for you</div>
+  <button class="button" onclick="nextPage()">Begin the Magic</button>
+
+  <script>
+    // Floating hearts generator
+    function createHeart() {
+      const heart = document.createElement("div");
+      heart.className = "heart";
+      heart.style.left = Math.random() * 100 + "vw";
+      heart.style.animationDuration = (4 + Math.random() * 3) + "s";
+      document.body.appendChild(heart);
+      setTimeout(() => heart.remove(), 7000);
+    }
+    setInterval(createHeart, 400);
+
+    // Move to next page
+    function nextPage() {
+      window.location.href = "cake.html"; // link to Cake page
+    }
+  </script>
+</body>
+</html>

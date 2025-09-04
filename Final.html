@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Birthday Message 🎉</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      overflow: hidden;
+      font-family: 'Poppins', sans-serif;
+      background: #a0d8f1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      position: relative;
+    }
+
+    /* Decorative bubbles/stars */
+    .star {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      background: white;
+      border-radius: 50%;
+      opacity: 0.7;
+      animation: twinkle 3s infinite;
+    }
+
+    @keyframes twinkle {
+      0%,100% { opacity: 0.2; }
+      50% { opacity: 1; }
+    }
+
+    .text-container {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 80%;
+      max-width: 650px;
+      line-height: 1.5;
+      z-index: 5;
+    }
+
+    .text-message {
+      font-size: 1.6rem;
+      color: #fff;
+      font-weight: 600;
+      opacity: 0;
+      margin-bottom: 20px;
+      animation: none;
+      display: block;
+    }
+
+    /* Text animation: fade in + float up + scale */
+    @keyframes textAppear {
+      0% { opacity: 0; transform: translateY(20px) scale(0.95);}
+      50% { opacity: 1; transform: translateY(0px) scale(1.05);}
+      100% { opacity: 1; transform: translateY(-5px) scale(1);}
+    }
+
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1;
+    }
+
+    .replay-btn {
+      position: absolute;
+      bottom: 30px;
+      padding: 12px 28px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 25px;
+      background: #4f46e5;
+      color: white;
+      cursor: pointer;
+      transition: 0.3s;
+      box-shadow: 0 0 12px rgba(0,0,0,0.3);
+      z-index: 10;
+    }
+
+    .replay-btn:hover {
+      background: #4338ca;
+      box-shadow: 0 0 20px rgba(255,255,255,0.7);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="text-container">
+    <div class="text-message" id="msg1">
+      Some gifts are wrapped in boxes…<br>
+      But this one is wrapped in friendship 💫<br>
+      Enjoy every moment of this special day!
+    </div>
+    <div class="text-message" id="msg2">
+      Life is full of surprises…<br>
+      And this is one for you, Priya!<br>
+      May happiness always surround you.
+    </div>
+    <div class="text-message" id="msg3">
+      Happy Birthday, Priya!<br>
+      This is a small effort from your friend — Manish.<br>
+      Wishing you joy, laughter, and love today!
+    </div>
+  </div>
+
+  <button class="replay-btn" onclick="replay()">Back to Welcome 🔄</button>
+
+  <canvas id="hearts"></canvas>
+
+  <script>
+    // Floating hearts
+    const canvas = document.getElementById("hearts");
+    const ctx = canvas.getContext("2d");
+    let cw, ch;
+
+    function resizeCanvas() {
+      cw = canvas.width = window.innerWidth;
+      ch = canvas.height = window.innerHeight;
+    }
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+
+    class Heart {
+      constructor() { this.reset(); }
+      reset() {
+        this.x = Math.random() * cw;
+        this.y = ch + Math.random() * 50;
+        this.size = 6 + Math.random() * 5;
+        this.speed = 0.5 + Math.random() * 1.2;
+        this.alpha = 0.6 + Math.random() * 0.4;
+        this.opacitySpeed = 0.004 + Math.random() * 0.004;
+      }
+      draw() {
+        ctx.save();
+        ctx.globalAlpha = this.alpha;
+        ctx.fillStyle = "#fff";
+        ctx.beginPath();
+        let x = this.x, y = this.y, s = this.size/2;
+        ctx.moveTo(x, y);
+        ctx.bezierCurveTo(x, y-s, x-s, y-s, x-s, y);
+        ctx.bezierCurveTo(x-s, y+s, x, y+s, x, y+s*1.5);
+        ctx.bezierCurveTo(x, y+s, x+s, y+s, x+s, y);
+        ctx.bezierCurveTo(x+s, y-s, x, y-s, x, y);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+      }
+      update() {
+        this.y -= this.speed;
+        this.alpha -= this.opacitySpeed;
+        if(this.alpha <= 0) this.reset();
+      }
+    }
+
+    const hearts = [];
+    for(let i=0;i<60;i++) hearts.push(new Heart());
+
+    function animateHearts() {
+      ctx.clearRect(0,0,cw,ch);
+      hearts.forEach(h => { h.update(); h.draw(); });
+      requestAnimationFrame(animateHearts);
+    }
+    animateHearts();
+
+    // Decorative stars
+    function createStars(count){
+      for(let i=0;i<count;i++){
+        const star = document.createElement("div");
+        star.className = "star";
+        star.style.top = Math.random()*ch + "px";
+        star.style.left = Math.random()*cw + "px";
+        star.style.animationDuration = (2+Math.random()*3)+"s";
+        document.body.appendChild(star);
+      }
+    }
+    createStars(40);
+
+    // Text animation sequence
+    const messages = [document.getElementById("msg1"), document.getElementById("msg2"), document.getElementById("msg3")];
+    let current = 0;
+
+    function showNextMessage() {
+      if(current > 0) messages[current-1].style.opacity = 0;
+      if(current < messages.length) {
+        const msg = messages[current];
+        msg.style.opacity = 1;
+        msg.style.animation = "textAppear 1.2s forwards";
+        current++;
+        setTimeout(showNextMessage, 4500); // 4.5 seconds per message
+      }
+    }
+    setTimeout(showNextMessage, 500);
+
+    function replay() {
+      window.location.href = "welcome.html";
+    }
+  </script>
+</body>
+</html>

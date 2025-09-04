@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Priya’s Birthday — Cake</title>
+<style>
+  :root{
+    --baby:#dff3ff;
+    --dark:#0b0f14;
+    --cake:#ffffff;
+    --choco:#6b3a19;
+    --choco2:#4a250f;
+    --blue:#3b82f6;
+    --spr1:#ff6b6b; --spr2:#ffd166; --spr3:#6ee7b7; --spr4:#a78bfa; --spr5:#f472b6;
+    --shadow: 0 10px 28px rgba(0,0,0,.18);
+    --glow: 0 0 12px rgba(59,130,246,.45), 0 0 24px rgba(59,130,246,.35);
+  }
+
+  /* Page layout */
+  html,body{height:100%;margin:0}
+  body{
+    font-family: ui-rounded, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    background: var(--baby);
+    transition: background .6s ease, color .4s ease;
+    color:#0f172a;
+    overflow:hidden;
+  }
+  .stage{
+    position:relative; inset:0; width:100%; height:100dvh;
+    display:flex; align-items:center; justify-content:center; flex-direction:column; gap:18px;
+  }
+
+  /* Spotlight for dark mode */
+  body.dark{
+    background: radial-gradient(800px 520px at 50% 40%, rgba(255,255,255,.12), rgba(255,255,255,.04) 35%, transparent 60%) , var(--dark);
+    color:#eef2ff;
+  }
+
+  /* Canvas for fireworks (hidden until cut) */
+  #fx{
+    position:fixed; inset:0; z-index:0; pointer-events:none; opacity:0; transition:opacity .6s ease;
+  }
+  body.dark #fx{ opacity:1 }
+
+  /* Title above cake (after click) */
+  .title{
+    position:absolute; top:8%; left:50%; transform:translateX(-50%);
+    font-weight:900; font-size:clamp(22px, 5.6vw, 40px);
+    text-align:center; letter-spacing:.4px; opacity:0; transition:opacity .6s ease, transform .6s ease;
+    text-shadow: 0 6px 18px rgba(0,0,0,.25);
+    z-index:3;
+  }
+  .title.show{opacity:1; transform:translateX(-50%) translateY(0)}
+
+  /* Cake wrapper */
+  .cake-wrap{
+    position:relative; z-index:2;
+    width:min(420px, 78vw); height:min(280px, 50vh);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .cake{
+    position:relative; width:70%; min-width:240px; aspect-ratio: 4 / 3;
+    transform: translateZ(0);
+    filter: drop-shadow(var(--shadow));
+    cursor:pointer;
+  }
+
+  /* Cake BODY (white soft rounded box) */
+  .cake__body{
+    position:absolute; inset:auto 0 0 0; height:68%; margin:auto;
+    background: var(--cake);
+    border-radius:18px;
+    box-shadow: inset 0 -8px 0 rgba(0,0,0,.05);
+    transform:scale(.9) translateY(15px);
+    opacity:0;
+    animation: bodyIn .7s .25s ease forwards;
+  }
+  @keyframes bodyIn{ to{opacity:1; transform:scale(1) translateY(0)} }
+
+  /* Cute face */
+  .face{
+    position:absolute; left:50%; top:58%; transform:translate(-50%,-50%);
+    display:flex; gap:10%; align-items:center; justify-content:center; width:70%;
+  }
+  .eye{
+    width:10%; aspect-ratio:1; background:#1f2937; border-radius:50%;
+    position:relative;
+  }
+  .eye::after{
+    content:""; position:absolute; width:35%; height:35%; background:#fff; border-radius:50%;
+    top:18%; left:18%;
+  }
+  .smile{
+    width:26%; height:32%; border:6px solid transparent; border-bottom-color:#1f2937; border-radius:0 0 80px 80px;
+    transform:translateY(12%);
+  }
+
+  /* CHOCOLATE DRIP TOP */
+  .cake__choco{
+    position:absolute; left:8%; right:8%; top:-4%;
+    height:34%; background:linear-gradient(#7b4321, var(--choco));
+    border-radius:18px 18px 10px 10px;
+    overflow:visible; clip-path:inset(0 round 18px 18px 10px 10px);
+    opacity:0; transform:translateY(-20px);
+    animation: chocoDrop .9s .9s cubic-bezier(.2,.9,.2,1) forwards;
+  }
+  @keyframes chocoDrop{ to{opacity:1; transform:translateY(0)} }
+
+  /* Drips (animated) */
+  .drip{ position:absolute; width:12%; min-width:16px; background:linear-gradient(var(--choco), var(--choco2));
+         bottom:78%; top:auto; height:0; border-radius:10px; }
+  .drip.d1{ left:6% ; animation:drip 1.6s 1.1s ease forwards }
+  .drip.d2{ left:26%; animation:drip 1.7s 1.05s ease forwards }
+  .drip.d3{ left:44%; animation:drip 1.55s 1.2s ease forwards }
+  .drip.d4{ left:64%; animation:drip 1.8s 1.05s ease forwards }
+  .drip.d5{ left:82%; animation:drip 1.6s 1.15s ease forwards }
+  @keyframes drip{
+    0%{height:0}
+    60%{height:58%}
+    100%{height:48%}
+  }
+
+  /* SPRINKLES on top (appear after choco) */
+  .sprinkles{ position:absolute; top:2%; left:10%; right:10%; height:26%; pointer-events:none; opacity:0; }
+  .spr{ position:absolute; width:6px; height:12px; border-radius:3px; transform:rotate(var(--r)) scale(0); }
+  .spr.show{ animation: pop .45s var(--d) cubic-bezier(.2,1,.2,1) forwards }
+  .spr.c1{background:var(--spr1)} .spr.c2{background:var(--spr2)} .spr.c3{background:var(--spr3)}
+  .spr.c4{background:var(--spr4)} .spr.c5{background:var(--spr5)}
+  @keyframes pop{ to{ transform:rotate(var(--r)) scale(1) } }
+
+  /* CANDLES */
+  .candles{ position:absolute; top:-12%; left:0; right:0; height:40%; display:flex; align-items:flex-end; justify-content:center; gap:8%;
+            opacity:0; transform:translateY(20px); }
+  .candle{
+    width:10px; height:46%; background:#ffe; border-radius:3px; position:relative;
+    box-shadow: inset 0 -8px 0 rgba(0,0,0,.06);
+    transform:translateY(40px);
+  }
+  .candle::before{ /* stripes */
+    content:""; position:absolute; inset:0; background:
+      repeating-linear-gradient(45deg, rgba(255,105,180,.9) 0 6px, rgba(255,255,255,0) 6px 12px);
+    border-radius:3px; opacity:.35;
+  }
+  .flame{
+    position:absolute; left:50%; transform:translate(-50%,-100%); top:-2px;
+    width:14px; height:18px; background: radial-gradient(circle at 50% 30%, #fff 0 30%, #ffd37a 45%, #ff9328 65%, rgba(255,147,40,0) 70%);
+    clip-path: polygon(50% 0%, 68% 36%, 100% 60%, 70% 70%, 50% 100%, 30% 70%, 0 60%, 32% 36%);
+    border-radius:50% 50% 50% 50%;
+    filter: drop-shadow(0 0 10px rgba(255,190,90,.85));
+    animation:flicker .12s infinite alternate;
+  }
+  @keyframes flicker{ from{transform:translate(-50%,-100%) scale(.94)} to{transform:translate(-50%,-103%) scale(1.02)} }
+  .candles.show{ opacity:1; transform:translateY(0); transition:opacity .6s ease .3s, transform .6s ease .3s; }
+  .candle.rise{ animation: rise .7s ease forwards; }
+  @keyframes rise{ from{transform:translateY(40px)} to{transform:translateY(0)} }
+
+  /* Text blocks under cake */
+  .copy{ text-align:center; line-height:1.5; min-height:3.2em; padding:0 16px; z-index:2 }
+  .line{ opacity:0; transform:translateY(8px); filter:blur(2px); transition:.6s ease; font-size:clamp(14px, 3.4vw, 18px) }
+  .line.show{ opacity:1; transform:translateY(0); filter:blur(0) }
+  .line.fade{ opacity:0; filter:blur(3px); transform:translateY(-6px) }
+
+  /* Button */
+  .btn{
+    visibility:hidden; opacity:0; transform:translateY(10px);
+    display:inline-flex; align-items:center; justify-content:center; gap:.5rem;
+    padding:.9rem 1.1rem; border-radius:999px; border:none; cursor:pointer;
+    background: var(--blue); color:#fff; font-weight:800; letter-spacing:.3px;
+    box-shadow: var(--glow);
+    transition: transform .2s, filter .2s, opacity .5s ease, visibility 0s .5s;
+    z-index:2;
+  }
+  .btn:hover{ filter:brightness(1.06) saturate(1.05) }
+  .btn.show{ visibility:visible; opacity:1; transform:translateY(0); transition: opacity .6s ease .2s, transform .6s ease .2s }
+
+  /* Accessibility hint pulse (optional small dot above cake before click) */
+  .hintDot{
+    position:absolute; top:-16px; left:50%; transform:translateX(-50%); width:10px; height:10px; border-radius:50%;
+    background:#fff; box-shadow:0 0 0 0 rgba(255,255,255,.9);
+    animation: ping 1.6s infinite; opacity:.9; pointer-events:none;
+  }
+  @keyframes ping{ 0%{box-shadow:0 0 0 0 rgba(255,255,255,.9)} 70%{box-shadow:0 0 0 12px rgba(255,255,255,0)} 100%{box-shadow:0 0 0 0 rgba(255,255,255,0)} }
+
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:.001s !important; animation-iteration-count:1 !important; transition:none !important }
+  }
+</style>
+</head>
+<body>
+<canvas id="fx"></canvas>
+
+<div class="stage">
+  <div class="title" id="title">Happy Birthday, Priya!</div>
+
+  <div class="cake-wrap">
+    <div class="cake" id="cake" aria-label="Birthday cake — click to cut!">
+      <div class="cake__body">
+        <!-- chocolate top with drips -->
+        <div class="cake__choco">
+          <span class="drip d1"></span>
+          <span class="drip d2"></span>
+          <span class="drip d3"></span>
+          <span class="drip d4"></span>
+          <span class="drip d5"></span>
+          <div class="sprinkles" id="sprinkles"></div>
+        </div>
+
+        <!-- cute face -->
+        <div class="face">
+          <span class="eye"></span>
+          <span class="smile"></span>
+          <span class="eye"></span>
+        </div>
+      </div>
+
+      <!-- candles group -->
+      <div class="candles" id="candles" aria-hidden="true">
+        <div class="candle"><span class="flame"></span></div>
+        <div class="candle"><span class="flame"></span></div>
+        <div class="candle"><span class="flame"></span></div>
+        <span class="hintDot"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="copy" aria-live="polite">
+    <div class="line" id="line1">“This cake is just for you 🎂”<br>May your day be as bright as your smile.</div>
+    <div class="line" id="line2">Let’s cut the cake 🎉 <em>(Click on it!)</em></div>
+  </div>
+
+  <a class="btn" id="openBtn" href="letter.html" role="button">Open the Envelope 💌</a>
+</div>
+
+<script>
+/* ---------- Build sequence ---------- */
+const sprColors = ['c1','c2','c3','c4','c5'];
+const cake = document.getElementById('cake');
+const sprWrap = document.getElementById('sprinkles');
+const candles = document.getElementById('candles');
+const title = document.getElementById('title');
+const line1 = document.getElementById('line1');
+const line2 = document.getElementById('line2');
+const btn = document.getElementById('openBtn');
+
+let built = false, cut = false;
+
+/* create sprinkles (positions randomized on top area) */
+function seedSprinkles(){
+  const rect = sprWrap.getBoundingClientRect();
+  sprWrap.style.opacity = 1;
+  for(let i=0;i<28;i++){
+    const s = document.createElement('span');
+    s.className = `spr ${sprColors[i%sprColors.length]}`;
+    const x = Math.random()*100;
+    const y = Math.random()*80; // stay within top icing area
+    s.style.left = x+'%';
+    s.style.top  = y+'%';
+    s.style.setProperty('--r', (Math.random()*120-60)+'deg');
+    s.style.setProperty('--d', (0.05*i)+'s');
+    sprWrap.appendChild(s);
+    requestAnimationFrame(()=> s.classList.add('show'));
+  }
+}
+
+/* candles rise & flames flicker (already via CSS) */
+function showCandles(){
+  candles.classList.add('show');
+  const c = [...candles.querySelectorAll('.candle')];
+  c.forEach((el,i)=>{ setTimeout(()=> el.classList.add('rise'), 90*i); });
+  candles.setAttribute('aria-hidden','false');
+}
+
+/* texts show in order */
+function textSequence(){
+  line1.classList.add('show');
+  setTimeout(()=>{ line1.classList.add('fade'); }, 2500);
+  setTimeout(()=>{ line2.classList.add('show'); }, 2800);
+}
+
+/* initial timeline after load */
+window.addEventListener('load', ()=>{
+  // Wait for body & choco to settle, then sprinkles + candles + text.
+  setTimeout(()=>{ seedSprinkles(); }, 1300);
+  setTimeout(()=>{ showCandles(); built=true; }, 1700);
+  setTimeout(()=>{ textSequence(); }, 1850);
+});
+
+/* ---------- Interaction: cut the cake ---------- */
+cake.addEventListener('click', ()=>{
+  if(!built || cut) return;
+  cut = true;
+
+  // blow out flames
+  candles.querySelectorAll('.flame').forEach(f=>{
+    f.style.animation = 'none';
+    f.style.opacity = '0';
+    f.style.transition = 'opacity .25s ease';
+  });
+
+  // hide hint text
+  line1.classList.remove('show'); line1.classList.add('fade');
+  line2.classList.remove('show'); line2.classList.add('fade');
+
+  // dark mode + spotlight
+  document.body.classList.add('dark');
+
+  // Show title
+  setTimeout(()=> title.classList.add('show'), 200);
+
+  // Start fireworks
+  startFireworks();
+
+  // Reveal the button after a short moment
+  setTimeout(()=> btn.classList.add('show'), 1100);
+});
+
+/* ---------- Fireworks Engine (canvas) ---------- */
+const canvas = document.getElementById('fx');
+const ctx = canvas.getContext('2d', { alpha:true });
+
+let W=0,H=0, rafId=null, fireworks=[], last=0;
+
+function resize(){
+  W = canvas.width  = Math.floor(window.innerWidth * devicePixelRatio);
+  H = canvas.height = Math.floor(window.innerHeight * devicePixelRatio);
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.scale(devicePixelRatio, devicePixelRatio);
+}
+window.addEventListener('resize', resize); resize();
+
+function rand(min,max){ return Math.random()*(max-min)+min; }
+function hsl(h,s,l){ return `hsl(${h} ${s}% ${l}%)`; }
+
+/* particle & burst definitions */
+class Particle{
+  constructor(x,y, vx,vy, color, life, shape='circle'){
+    this.x=x; this.y=y; this.vx=vx; this.vy=vy; this.g=0.02;
+    this.color=color; this.life=life; this.age=0; this.shape=shape;
+    this.size=rand(1.2,2.6);
+  }
+  step(dt){
+    this.age+=dt; if(this.age>this.life) return false;
+    this.x+=this.vx*dt*60; this.y+=this.vy*dt*60;
+    this.vy+=this.g*dt*60*0.3; // gravity
+    return true;
+  }
+  draw(){
+    ctx.globalAlpha = Math.max(0,1 - this.age/this.life);
+    ctx.fillStyle = this.color;
+    if(this.shape==='heart') drawHeart(ctx, this.x, this.y, this.size*3);
+    else { ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI*2); ctx.fill(); }
+    ctx.globalAlpha = 1;
+  }
+}
+function drawHeart(ctx,x,y,size){
+  ctx.save();
+  ctx.translate(x,y); ctx.rotate(Math.PI/4); // diamond → heart
+  const r=size;
+  ctx.beginPath();
+  ctx.rect(-r/2, -r/2, r, r);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(0,-r/2, r/2, 0, Math.PI*2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(-r/2,0, r/2, 0, Math.PI*2);
+  ctx.fill();
+  ctx.restore();
+}
+function spawnBurst(){
+  const cx = rand(0.2*innerWidth, 0.8*innerWidth);
+  const cy = rand(0.2*innerHeight, 0.55*innerHeight);
+  const hue = rand(0,360);
+  const heartMix = Math.random() < 0.45; // mix hearts frequently
+  const count = 42;
+
+  for(let i=0;i<count;i++){
+    const angle = i/count * Math.PI*2 + rand(-0.05,0.05);
+    const speed = rand(1.2, 2.4);
+    const vx = Math.cos(angle)*speed;
+    const vy = Math.sin(angle)*speed;
+    const color = hsl((hue + rand(-20,20))|0, 90, 62);
+    const life = rand(0.9, 1.6);
+    const shape = (heartMix && i%3===0) ? 'heart' : 'circle';
+    fireworks.push(new Particle(cx, cy, vx, vy, color, life, shape));
+  }
+  // comet tails (small trail upwards)
+  for(let k=0;k<3;k++){
+    const x = cx + rand(-40,40);
+    const col = hsl((hue + rand(-10,10))|0, 90, 70);
+    for(let j=0;j<12;j++){
+      fireworks.push(new Particle(x, innerHeight, rand(-0.2,0.2), rand(-2.8,-1.4), col, rand(0.8,1.2), 'circle'));
+    }
+  }
+}
+function loop(ts){
+  const dt = Math.min(0.033, (ts-last)/1000||0.016); last=ts;
+  ctx.clearRect(0,0,innerWidth,innerHeight);
+
+  // occasional new burst
+  if(Math.random()<0.05) spawnBurst();
+
+  fireworks = fireworks.filter(p=>{ const alive=p.step(dt); if(alive) p.draw(); return alive; });
+  rafId = requestAnimationFrame(loop);
+}
+function startFireworks(){
+  if(rafId) cancelAnimationFrame(rafId);
+  loop(0);
+}
+
+/* Accessibility: Enter/Space to cut */
+cake.tabIndex = 0;
+cake.addEventListener('keydown', (e)=>{
+  if((e.key==='Enter'||e.key===' ') && !cut){ e.preventDefault(); cake.click(); }
+});
+</script>
+</body>
+</html>
